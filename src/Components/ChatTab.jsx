@@ -16,19 +16,20 @@ export default function ChatTab() {
   const [rooms, setRooms] = React.useState([]);
   const [roomID, setRoomID] = useState();
   const [usernames, setUsernames] = useState([]);
+  const [roomUsernames,setRoomUsernames] = useState([]);
 
   const email = localStorage.getItem("email");
   const username = localStorage.getItem("username");
 
   const handleChange = (event, newValue) => {
-    console.log("chnage Handler");
+    console.log("change ",newValue);
     setRoomID(() => rooms[newValue].roomId);
+    console.log("rooms 0 : ",rooms[0].usernames)
     setValue(newValue);
-    console.log("Room Id : ", rooms[newValue].roomId, "val ", value);
+    setRoomUsernames(rooms[newValue].usernames);
   };
 
   const createRoom = async (username2) => {
-    console.log("create room : ", username, username2);
     if(!username2)
       return;
     try {
@@ -75,7 +76,6 @@ export default function ChatTab() {
     try {
       const result = await axios.get("http://localhost:8000/getallusers");
       if (result.status === 200) {
-        console.log(result.data.data);
         setUsernames(removeOwnUsername(result.data.data));
       } else {
         console.log("Error getting users");
@@ -97,7 +97,6 @@ export default function ChatTab() {
   useEffect(() => {
     const handleInvitation = (data) => {
       console.log("Invitation Received", data);
-      alert("Invitation Received");
 
       socket.emit("join_room", data.roomId);
       setRooms((prevRooms) => [...prevRooms, data]);
@@ -122,7 +121,7 @@ export default function ChatTab() {
             createRoom={createRoom}
           />
         </div>
-        <ChatUsersList />
+        <ChatUsersList room={rooms} usernames={!rooms ? [] :  roomUsernames}/>
       </div>
 
       <Box

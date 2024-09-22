@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './chatList.css';  // Import the CSS file
 
-const ChatUsersList = ({ usernames, onButtonClick }) => {
-    const usernamess = ["Hamza","Anas","Asad","Talha"];
+const   ChatUsersList = ({ usernames,room, onButtonClick }) => {
+  useEffect(()=>{
+    console.log("UL ",room);
+  },[])
   return (
     <div className="user-list-container">
       <div className="user-list">
-        {usernamess.map((username, index) => (
+        {usernames.map((username, index) => (
           <div key={index} className="username-item">
             {username}
           </div>

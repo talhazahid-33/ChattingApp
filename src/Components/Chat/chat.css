@@ -59,7 +59,18 @@
     bottom: 0;
   }
 
+  .input-message-div{
+    display: flex;
+    flex-direction: row;
+  }
   
+.small-tag {
+  position: absolute;
+  bottom: 5px; /* Adjust as needed */
+  right: 5px; /* Adjust as needed */
+  font-size: 0.75rem; /* Smaller font size */
+  color: gray; /* Or any color you prefer */
+}
 
 .chat-parent-container {
   display: flex;

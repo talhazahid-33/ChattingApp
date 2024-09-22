@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import ChatRoom from "../Chat/chatRoom";
 const TabPanelC = (props) => {
     const { children, value, index, roomid, ...other } = props;
-   
+    useEffect(()=>console.log("TP : ",props))
     if (!roomid) {
       return <></>; 
     }

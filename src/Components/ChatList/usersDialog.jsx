@@ -10,8 +10,6 @@ import ListItemText from '@mui/material/ListItemText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import PersonIcon from '@mui/icons-material/Person';
-import AddIcon from '@mui/icons-material/Add';
-import Typography from '@mui/material/Typography';
 import { blue } from '@mui/material/colors';
 
 function SimpleDialog(props) {
@@ -58,7 +56,6 @@ export default function RoomCreation(props) {
   const [selectedValue, setSelectedValue] = React.useState(props.usernames[1]);
 
   React.useEffect(()=>{
-    console.log("Crete Room props : ",props );
   })
   const handleClickOpen = () => {
     setOpen(true);

@@ -59,15 +59,15 @@ exports.signup = (req, res) => {
     res.status(500).json("Error");
   }
 };
-async function insertUsername(roomId,username) {
+async function insertUsername(roomId, username) {
   const query = `Insert into chatusers (roomId , username) Values (? , ? )`;
   try {
-      conn.query(query, [roomId,username], (err, result) => {
-        if (err) {
-          console.log(err);
-          return;
-        } 
-      });
+    conn.query(query, [roomId, username], (err, result) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+    });
   } catch (e) {
     console.log(e);
   }
@@ -85,8 +85,8 @@ exports.createRoom = async (req, res) => {
         return res.status(500).send("Error occured in craete Room");
       }
       const insertedId = result.insertId;
-      insertUsername(insertedId,username1);
-      insertUsername(insertedId,username2);
+      insertUsername(insertedId, username1);
+      insertUsername(insertedId, username2);
 
       console.log("create room Inserted ID:", insertedId);
       return res.status(200).send({ roomId: insertedId });
@@ -96,7 +96,6 @@ exports.createRoom = async (req, res) => {
     return res.status(500).send("Error occured in craete Room");
   }
 };
-
 
 async function getUsernames(roomId) {
   const query = `SELECT username FROM chatusers WHERE roomId = ?`;
@@ -109,7 +108,7 @@ async function getUsernames(roomId) {
         } else if (result.length === 0) {
           resolve([]);
         } else {
-          const usernames = result.map(user => user.username);
+          const usernames = result.map((user) => user.username);
           resolve(usernames);
           resolve(result);
         }
@@ -125,26 +124,24 @@ exports.getRooms = async (req, res) => {
 
   try {
     const username = req.body.username;
-
-
     const roomIds = await this.getRoomIds(username);
-    const roomIdsPlaceholder = roomIds.map(() => '?').join(', '); 
+    if (roomIds.length === 0) return res.status(404).send("No room to show");
+    const roomIdsPlaceholder = roomIds.map(() => "?").join(", ");
     const query = `SELECT * FROM rooms WHERE roomId IN (${roomIdsPlaceholder})`;
-    conn.query(query,roomIds,async (err, result) => {
+    conn.query(query, roomIds, async (err, result) => {
       if (err) {
         console.log(err);
         return res.status(500).send("Error getting rooms err");
       }
       const roomsWithUsernames = await Promise.all(
         result.map(async (room) => {
-          const usernames = await getUsernames(room.roomId);  
+          const usernames = await getUsernames(room.roomId);
           return {
-            ...room, 
-            usernames, 
+            ...room,
+            usernames,
           };
         })
       );
-
       return res.status(200).send({ data: roomsWithUsernames });
     });
   } catch (error) {
@@ -152,7 +149,7 @@ exports.getRooms = async (req, res) => {
   }
 };
 
-exports.getRoomIds = async(username)=> {
+exports.getRoomIds = async (username) => {
   const query = `SELECT DISTINCT roomId FROM chatusers WHERE username = ?`;
   return new Promise((resolve, reject) => {
     conn.query(query, [username], (err, result) => {
@@ -160,7 +157,7 @@ exports.getRoomIds = async(username)=> {
         console.log(err);
         reject(new Error("Database query failed"));
       } else {
-        const roomIds = result.map(row => row.roomId);
+        const roomIds = result.map((row) => row.roomId);
         resolve(roomIds);
       }
     });
@@ -177,7 +174,6 @@ async function updateRoomLastMessage(message, roomId) {
         console.log("Error updating last message:", err);
         return;
       }
-
       if (result.affectedRows === 0) {
         console.log("No room to update Last Message");
       }
@@ -206,7 +202,7 @@ exports.getUsernameOfRoom = async (req, res) => {
   }
 };
 
-exports.getAllUsernames = async(req,res)=>{
+exports.getAllUsernames = async (req, res) => {
   console.log("Get All Usernames ");
   try {
     const query = `SELECT username FROM users`;
@@ -215,25 +211,32 @@ exports.getAllUsernames = async(req,res)=>{
         console.log("Error getting users", err);
         return res.status(500).send("Error getting users");
       }
-      const usernames = result.map(user => user.username);
+      const usernames = result.map((user) => user.username);
       return res.status(200).send({ data: usernames });
     });
   } catch (error) {
     console.error("Error getting users ", error);
   }
-}
+};
 exports.saveMessage = async (req, res) => {
-  console.log("Save Message");
-  const { roomId, time, sender, seen, message } = req.body;
+  console.log("Save Message", req.body);
+  const message = req.body;
   try {
-    const query = `insert into messages (roomid,time,sender,seen,message) values (?,?,?,?,?)`;
-    const values = [roomId, time, sender, seen, message];
+    const query = `insert into messages (messageId,roomid,time,sender,seen,message) values (?,?,?,?,?,?)`;
+    const values = [
+      message.messageId,
+      message.roomId,
+      message.time,
+      message.sender,
+      message.seen,
+      message.message,
+    ];
     conn.query(query, values, (err, result) => {
       if (err) {
-        console.log("Error ssaving messages", err);
+        console.log("Error Query saving messages", err);
         return res.status(500).send("Error saving message");
       }
-      updateRoomLastMessage(message, roomId);
+      updateRoomLastMessage(message.message, message.roomId);
       return res.status(200).send("Message Saved");
     });
   } catch (error) {
@@ -245,13 +248,12 @@ exports.getRoomMessages = async (req, res) => {
   console.log("Get Room Messages", req.body);
   try {
     const roomId = req.body.roomId;
-
-    const query = `select * from messages where roomId = ?`;
+    const query = `select messageId ,roomId, time, sender, seen, message from messages where roomId = ? ORDER BY createdAt ASC`;
 
     conn.query(query, [roomId], (err, result) => {
       if (err) {
-        console.log("Error in getRoomMessages");
-        return res.status(500).send("Error in getting Messages from room", err);
+        console.log("Error in getRoomMessages", err);
+        return res.status(500).send("Error in getting Messages from room");
       }
       res.status(200).send({ data: result });
     });
@@ -261,9 +263,8 @@ exports.getRoomMessages = async (req, res) => {
 };
 
 exports.updateSeen = (req, res) => {
-  console.log("update Seen");
-  const query = `UPDATE messages SET seen = 1 WHERE messageId = ?`;
-
+  console.log("Update Seen", req.body);
+  const query = `UPDATE messages SET seen = true WHERE messageId = ?`;
   try {
     conn.query(query, [req.body.messageId], (err, result) => {
       if (err) {
@@ -285,33 +286,46 @@ exports.updateSeen = (req, res) => {
   }
 };
 
+exports.updateSeenForAll = (username,roomId) => {
+  console.log("Update Seen for All", username);
+  const query = `UPDATE messages SET seen = true WHERE sender != ? AND roomId = ?`;
+  try {
+    conn.query(query, [username,roomId], (err, result) => {
+      if (err) {
+        console.error("Error in updating Seen status for all", err);
+      }
+      if (result.affectedRows === 0) {
+        console.log("No messages to update for !sender:", username);
+      }
+      console.log("Seen status updated successfully for all messages except sender");
+    });
+  } catch (error) {
+    console.error("Error occurred while updating seen status for all messages:", error);
+  }
+};
 
 
-
-
-
-exports.getRoomsByUsername = async (req,res) => {
+exports.getRoomsByUsername = async (req, res) => {
   const username = req.body.username;
   try {
-      const roomIds = await getRoomIds(username);
-      console.log(roomIds);
+    const roomIds = await getRoomIds(username);
+    console.log(roomIds);
 
-      if (roomIds.length === 0) {
-        res.status(404).send("No room found");
-      }
-      console.log("Room Ids : ",roomIds);
-      const placeholders = roomIds.map(() => '?').join(', ');
-      console.log("Place HOlders : ",placeholders);
-      const query = `
+    if (roomIds.length === 0) {
+      res.status(404).send("No room found");
+    }
+    console.log("Room Ids : ", roomIds);
+    const placeholders = roomIds.map(() => "?").join(", ");
+    console.log("Place HOlders : ", placeholders);
+    const query = `
           SELECT *
           FROM rooms
           WHERE roomId IN (${placeholders})
       `;
-      const [rows] = await conn.execute(query, roomIds);
-      res.status(200).send({data:rows});
-
+    const [rows] = await conn.execute(query, roomIds);
+    res.status(200).send({ data: rows });
   } catch (error) {
-      console.error('Error fetching rooms:', error);
-      res.status(500).send("Some Error Occured");
+    console.error("Error fetching rooms:", error);
+    res.status(500).send("Some Error Occured");
   }
 };

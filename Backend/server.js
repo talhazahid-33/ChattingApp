@@ -42,12 +42,10 @@ io.on("connection", (socket) => {
   });
   
 
-  // Listen for the 'join_room' event from the client
   socket.on("join_room", (roomId) => {
     console.log(`Joining room: ${roomId}, Socket ID: ${socket.id}`);
     socket.join(roomId);
 
-    // Optional: Notify other users in the room about the new member
     //socket.to(roomId).emit("new_user_joined", { userId: socket.id });
   });
 
@@ -72,6 +70,24 @@ io.on("connection", (socket) => {
     const rooms = Array.from(socket.rooms);
     console.log("Current joined rooms:", rooms);
   });
+
+  socket.on('send_image', async (data) => {
+    const { roomId, image } = data;
+    socket.to(roomId).emit('receive_image', { message, image });
+  });
+
+
+  socket.on ("update_seen",(data)=>{
+    console.log("Updating seen",data);
+    socket.to(data.roomId).emit("listen_seen_update",data);
+  });
+
+  socket.on("update_seen_for_all",(data)=>{
+    console.log("Update senn for all server ",data);
+    controller.updateSeenForAll(data.username,data.roomId);
+    socket.to(data.roomId).emit("listen_update_seen_for_all",data.username);
+
+  })
 
   socket.on("disconnect", (reason) => {
     console.log("Disconnected: ", socket.id, " due to ", reason);
