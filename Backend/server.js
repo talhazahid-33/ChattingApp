@@ -62,7 +62,8 @@ io.on("connection", (socket) => {
     
   socket.on("send_message", (data) => {
     console.log("Sending Message: ", data);
-    socket.to(data.roomId).emit("receive_message", data.message);
+    socket.emit("receive_message", data.message);
+    socket.to(data.roomId).emit("update_room_last_message",data.message);
   });
 
 

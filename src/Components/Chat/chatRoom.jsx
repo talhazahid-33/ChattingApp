@@ -116,6 +116,7 @@ const ChatRoom = (props) => {
       });
       setMessages((prevMsgs) => [...prevMsgs, newMessage]);
       saveMessage(newMessage);
+      props.UpdateRoomLastMessage(props.roomid,newMessage.message);
       setMessage("");
     } catch (error) {
       console.log("Error sending Message");
@@ -184,8 +185,6 @@ const ChatRoom = (props) => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           ></input>
-          <input type="file" accept="image/*" onChange={handleImageChange} />
-          <button onClick={handleImageSend}>Send Image</button>
         </div>
         <br />
         <button className="btn btn-primary" onClick={sendMessage}>

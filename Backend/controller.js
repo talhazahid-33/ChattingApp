@@ -5,12 +5,10 @@ const conn = require("./db");
 exports.logIn = (req, res) => {
   console.log("Login");
   const { email, password } = req.body;
-  console.log(email, password);
 
   try {
     const query = `SELECT * FROM users WHERE email = ? AND password = ? `;
     const values = [email, password];
-    console.log("Values : ", values);
     conn.query(query, values, (err, result) => {
       if (err) {
         console.log("Error in query", err);
@@ -76,6 +74,9 @@ async function insertUsername(roomId, username) {
 exports.createRoom = async (req, res) => {
   console.log("create room", req.body);
   const { username1, username2 } = req.body;
+  if(!username1  || !username2)
+    return res.status(500).send("No username received");
+
   const query = `INSERT into Rooms (lastMessage) VALUES (?)`;
   const values = [""];
   try {
@@ -212,6 +213,7 @@ exports.getAllUsernames = async (req, res) => {
         return res.status(500).send("Error getting users");
       }
       const usernames = result.map((user) => user.username);
+  
       return res.status(200).send({ data: usernames });
     });
   } catch (error) {

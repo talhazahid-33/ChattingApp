@@ -15,7 +15,7 @@ const   ChatUsersList = ({ usernames,room, onButtonClick }) => {
         ))}
       </div>
       <button onClick={onButtonClick} className="action-button">
-        Action
+        ADD
       </button>
     </div>
   );
